@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KU Revenue Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>KU Revenue Calculator</h1>
+            <p>Track your Kindle Unlimited performance and optimize your ad spend</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="settings-bar">
+            <div class="setting-item">
+                <label for="kenp-rate">
+                    KENP Rate
+                    <button class="info-btn" onclick="toggleInfo('kenp-info')">?</button>
+                </label>
+                <div class="input-wrapper">
+                    <span class="currency">$</span>
+                    <input type="number" id="kenp-rate" value="0.0045" step="0.0001" min="0">
+                </div>
+                <div class="info-text" id="kenp-info">
+                    The amount you earn per page read in Kindle Unlimited. Amazon pays between $0.004-$0.005 per page, determined monthly from the KDP Global Fund. Check your KDP dashboard for the current month's rate.
+                </div>
+            </div>
+            <div class="setting-item">
+                <label for="book-price">
+                    Book 1 Price
+                    <button class="info-btn" onclick="toggleInfo('price-info')">?</button>
+                </label>
+                <div class="input-wrapper">
+                    <span class="currency">$</span>
+                    <input type="number" id="book-price" value="4.99" step="0.01" min="0">
+                </div>
+                <div class="info-text" id="price-info">
+                    The list price of your book. You earn 70% royalty on sales between $2.99-$9.99, and 35% outside this range. This calculator assumes 70% royalty rate.
+                </div>
+            </div>
+        </div>
+
+        <div class="metrics-overview">
+            <div class="metric-card primary">
+                <div class="metric-icon">💰</div>
+                <div class="metric-content">
+                    <h3>Total Revenue</h3>
+                    <p id="total-revenue">$0.00</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">📈</div>
+                <div class="metric-content">
+                    <h3>Avg Read-Through</h3>
+                    <p id="avg-readthrough">0%</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-content">
+                    <h3>Break-Even Ad Cost per Reader <button class="info-btn" onclick="toggleInfo('breakeven-info')">?</button></h3>
+                    <p id="breakeven-cost">$0.00</p>
+                    <div class="info-text" id="breakeven-info">
+                        The maximum amount you can spend on ads per Book 1 reader and still break even. This factors in revenue from the entire series based on your read-through rates. For example, if this shows $15, you can spend up to $15 to acquire each Book 1 reader through advertising and still be profitable when accounting for their purchases/reads across all books.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="graph-section" style="display: none;">
+            <h2>Revenue Breakdown</h2>
+            <div class="graph-container">
+                <canvas id="revenue-chart" width="800" height="400"></canvas>
+            </div>
+        </div>
+
+        <div class="books-section">
+            <div class="section-header">
+                <h2>Your Book Series</h2>
+                <div class="button-group">
+                    <button id="reset-data" class="btn-reset">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10C4 13.3137 6.68629 16 10 16C13.3137 16 16 13.3137 16 10C16 6.68629 13.3137 4 10 4C7.79086 4 5.88882 5.13727 4.8 6.8M4 4V7H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        Reset All Data
+                    </button>
+                    <button id="add-book" class="btn-add">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        Add Book
+                    </button>
+                </div>
+            </div>
+
+            <div id="books-container">
+                <div class="book-card" data-book="1">
+                    <div class="book-header">
+                        <div class="book-number">1</div>
+                        <h3>Book 1</h3>
+                    </div>
+                    <button class="remove-book" onclick="removeBook(1)" id="remove-btn-1">×</button>
+                    
+                    <div class="book-inputs">
+                        <div class="input-row">
+                            <div class="input-field">
+                                <label for="sold-1">
+                                    Books Sold
+                                    <button class="info-btn" onclick="toggleInfo('sold-info-1')">?</button>
+                                </label>
+                                <input type="number" id="sold-1" placeholder="0" min="0" value="250">
+                                <div class="info-text" id="sold-info-1">
+                                    Number of copies sold (not borrowed). Find this in your KDP dashboard under "Units Ordered" for the specific title and time period.
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label for="pages-read-1">
+                                    Pages Read
+                                    <button class="info-btn" onclick="toggleInfo('pages-read-info-1')">?</button>
+                                </label>
+                                <input type="number" id="pages-read-1" placeholder="0" min="0" value="2500000">
+                                <div class="info-text" id="pages-read-info-1">
+                                    Total KENP (Kindle Edition Normalized Pages) read for this book. Find in KDP dashboard under "KENP Read" column. This is the lifetime total of all pages read by KU subscribers.
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label for="total-pages-1">
+                                    Total Pages
+                                    <button class="info-btn" onclick="toggleInfo('total-pages-info-1')">?</button>
+                                </label>
+                                <input type="number" id="total-pages-1" placeholder="0" min="1" value="350">
+                                <div class="info-text" id="total-pages-info-1">
+                                    Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="book-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Estimated Readers</span>
+                            <span class="metric-value" id="readers-1">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">KENP Revenue</span>
+                            <span class="metric-value" id="kenp-revenue-1">$0.00</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Sales Revenue</span>
+                            <span class="metric-value" id="sales-revenue-1">$0.00</span>
+                        </div>
+                        <div class="metric-item highlight">
+                            <span class="metric-label">Total Revenue</span>
+                            <span class="metric-value" id="book-revenue-1">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="book-card" data-book="2">
+                    <div class="book-header">
+                        <div class="book-number">2</div>
+                        <h3>Book 2</h3>
+                    </div>
+                    <button class="remove-book" onclick="removeBook(2)" id="remove-btn-2">×</button>
+                    <span class="readthrough-badge" id="readthrough-2">0% Read-through</span>
+                    
+                    <div class="book-inputs">
+                        <div class="input-row">
+                            <div class="input-field">
+                                <label for="sold-2">
+                                    Books Sold
+                                    <button class="info-btn" onclick="toggleInfo('sold-info-2')">?</button>
+                                </label>
+                                <input type="number" id="sold-2" placeholder="0" min="0" value="180">
+                                <div class="info-text" id="sold-info-2">
+                                    Number of copies sold (not borrowed). Find this in your KDP dashboard under "Units Ordered" for the specific title and time period.
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label for="pages-read-2">
+                                    Pages Read
+                                    <button class="info-btn" onclick="toggleInfo('pages-read-info-2')">?</button>
+                                </label>
+                                <input type="number" id="pages-read-2" placeholder="0" min="0" value="1800000">
+                                <div class="info-text" id="pages-read-info-2">
+                                    Total KENP (Kindle Edition Normalized Pages) read for this book. Find in KDP dashboard under "KENP Read" column. This is the lifetime total of all pages read by KU subscribers.
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label for="total-pages-2">
+                                    Total Pages
+                                    <button class="info-btn" onclick="toggleInfo('total-pages-info-2')">?</button>
+                                </label>
+                                <input type="number" id="total-pages-2" placeholder="0" min="1" value="400">
+                                <div class="info-text" id="total-pages-info-2">
+                                    Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="book-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Estimated Readers</span>
+                            <span class="metric-value" id="readers-2">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">KENP Revenue</span>
+                            <span class="metric-value" id="kenp-revenue-2">$0.00</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Sales Revenue</span>
+                            <span class="metric-value" id="sales-revenue-2">$0.00</span>
+                        </div>
+                        <div class="metric-item highlight">
+                            <span class="metric-label">Total Revenue</span>
+                            <span class="metric-value" id="book-revenue-2">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="book-card" data-book="3">
+                    <div class="book-header">
+                        <div class="book-number">3</div>
+                        <h3>Book 3</h3>
+                    </div>
+                    <button class="remove-book" onclick="removeBook(3)" id="remove-btn-3">×</button>
+                    <span class="readthrough-badge" id="readthrough-3">0% Read-through</span>
+                    
+                    <div class="book-inputs">
+                        <div class="input-row">
+                            <div class="input-field">
+                                <label for="sold-3">
+                                    Books Sold
+                                    <button class="info-btn" onclick="toggleInfo('sold-info-3')">?</button>
+                                </label>
+                                <input type="number" id="sold-3" placeholder="0" min="0" value="120">
+                                <div class="info-text" id="sold-info-3">
+                                    Number of copies sold (not borrowed). Find this in your KDP dashboard under "Units Ordered" for the specific title and time period.
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label for="pages-read-3">
+                                    Pages Read
+                                    <button class="info-btn" onclick="toggleInfo('pages-read-info-3')">?</button>
+                                </label>
+                                <input type="number" id="pages-read-3" placeholder="0" min="0" value="1050000">
+                                <div class="info-text" id="pages-read-info-3">
+                                    Total KENP (Kindle Edition Normalized Pages) read for this book. Find in KDP dashboard under "KENP Read" column. This is the lifetime total of all pages read by KU subscribers.
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label for="total-pages-3">
+                                    Total Pages
+                                    <button class="info-btn" onclick="toggleInfo('total-pages-info-3')">?</button>
+                                </label>
+                                <input type="number" id="total-pages-3" placeholder="0" min="1" value="420">
+                                <div class="info-text" id="total-pages-info-3">
+                                    Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="book-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Estimated Readers</span>
+                            <span class="metric-value" id="readers-3">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">KENP Revenue</span>
+                            <span class="metric-value" id="kenp-revenue-3">$0.00</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Sales Revenue</span>
+                            <span class="metric-value" id="sales-revenue-3">$0.00</span>
+                        </div>
+                        <div class="metric-item highlight">
+                            <span class="metric-label">Total Revenue</span>
+                            <span class="metric-value" id="book-revenue-3">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Created by <a href="https://x.com/_buf" target="_blank" rel="noopener">Buford</a>, Author of <a href="https://www.amazon.com/dp/B0FGWXW9L5" target="_blank" rel="noopener">Nouscraft</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
