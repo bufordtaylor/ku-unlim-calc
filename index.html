@@ -109,19 +109,6 @@
                     The amount you earn per page read in Kindle Unlimited. Amazon pays between $0.004-$0.005 per page, determined monthly from the KDP Global Fund. Check your KDP dashboard for the current month's rate.
                 </div>
             </div>
-            <div class="setting-item">
-                <label for="book-price">
-                    Book 1 Price
-                    <button class="info-btn" onclick="toggleInfo('price-info')">?</button>
-                </label>
-                <div class="input-wrapper">
-                    <span class="currency">$</span>
-                    <input type="number" id="book-price" value="4.99" step="0.01" min="0">
-                </div>
-                <div class="info-text" id="price-info">
-                    The list price of your book. You earn 70% royalty on sales between $2.99-$9.99, and 35% outside this range. This calculator assumes 70% royalty rate.
-                </div>
-            </div>
         </div>
 
         <div class="metrics-overview">
@@ -210,6 +197,19 @@
                                     Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
                                 </div>
                             </div>
+                            <div class="input-field">
+                                <label for="book-price-1">
+                                    Book Price
+                                    <button class="info-btn" onclick="toggleInfo('price-info-1')">?</button>
+                                </label>
+                                <div class="input-wrapper">
+                                    <span class="currency">$</span>
+                                    <input type="number" id="book-price-1" placeholder="4.99" min="0" step="0.01" value="4.99">
+                                </div>
+                                <div class="info-text" id="price-info-1">
+                                    The list price of this book. You earn 70% royalty on sales between $2.99-$9.99, and 35% outside this range. This calculator assumes 70% royalty rate.
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -271,6 +271,19 @@
                                 <input type="number" id="total-pages-2" placeholder="0" min="1" value="400">
                                 <div class="info-text" id="total-pages-info-2">
                                     Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
+                                </div>
+                            </div>
+                            <div class="input-field">
+                                <label for="book-price-2">
+                                    Book Price
+                                    <button class="info-btn" onclick="toggleInfo('price-info-2')">?</button>
+                                </label>
+                                <div class="input-wrapper">
+                                    <span class="currency">$</span>
+                                    <input type="number" id="book-price-2" placeholder="4.99" min="0" step="0.01" value="4.99">
+                                </div>
+                                <div class="info-text" id="price-info-2">
+                                    The list price of this book. You earn 70% royalty on sales between $2.99-$9.99, and 35% outside this range. This calculator assumes 70% royalty rate.
                                 </div>
                             </div>
                         </div>
@@ -336,6 +349,19 @@
                                     Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
                                 </div>
                             </div>
+                            <div class="input-field">
+                                <label for="book-price-3">
+                                    Book Price
+                                    <button class="info-btn" onclick="toggleInfo('price-info-3')">?</button>
+                                </label>
+                                <div class="input-wrapper">
+                                    <span class="currency">$</span>
+                                    <input type="number" id="book-price-3" placeholder="4.99" min="0" step="0.01" value="4.99">
+                                </div>
+                                <div class="info-text" id="price-info-3">
+                                    The list price of this book. You earn 70% royalty on sales between $2.99-$9.99, and 35% outside this range. This calculator assumes 70% royalty rate.
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -367,7 +393,6 @@
 
     <footer>
         <p>Page created by <a href="https://x.com/_buf" target="_blank" rel="noopener">Buford</a>, Author of <a href="https://www.amazon.com/dp/B0FGWXW9L5" target="_blank" rel="noopener">Nouscraft</a></p>
-        <p>Calculator by Dasha</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

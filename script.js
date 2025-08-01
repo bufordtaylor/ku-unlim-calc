@@ -44,10 +44,6 @@ function initializeEventListeners() {
         calculateResults();
         saveToStorage();
     });
-    document.getElementById('book-price').addEventListener('input', function() {
-        calculateResults();
-        saveToStorage();
-    });
     
     // Chart toggle buttons
     document.querySelectorAll('.chart-toggle').forEach(button => {
@@ -117,6 +113,19 @@ function addNewBook() {
                     <input type="number" id="total-pages-${bookCount}" placeholder="0" min="1">
                     <div class="info-text" id="total-pages-info-${bookCount}">
                         Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label for="book-price-${bookCount}">
+                        Book Price
+                        <button class="info-btn" onclick="toggleInfo('price-info-${bookCount}')">?</button>
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="currency">$</span>
+                        <input type="number" id="book-price-${bookCount}" placeholder="4.99" min="0" step="0.01" value="4.99">
+                    </div>
+                    <div class="info-text" id="price-info-${bookCount}">
+                        The list price of this book. You earn 70% royalty on sales between $2.99-$9.99, and 35% outside this range. This calculator assumes 70% royalty rate.
                     </div>
                 </div>
             </div>
@@ -253,9 +262,8 @@ function calculateResults() {
     collectBookData();
     
     const kenpRate = parseFloat(document.getElementById('kenp-rate').value) || 0.0045;
-    const bookPrice = parseFloat(document.getElementById('book-price').value) || 4.99;
     
-    if (kenpRate < 0 || bookPrice < 0) {
+    if (kenpRate < 0) {
         return;
     }
     
@@ -268,8 +276,9 @@ function calculateResults() {
         if (!bookData) continue;
         
         const { sold, pagesRead, totalPages } = bookData;
+        const bookPrice = parseFloat(document.getElementById(`book-price-${i}`)?.value) || 4.99;
         
-        if (sold < 0 || pagesRead < 0 || totalPages < 0) {
+        if (sold < 0 || pagesRead < 0 || totalPages < 0 || bookPrice < 0) {
             continue;
         }
         
@@ -347,7 +356,7 @@ function resetAllData() {
     document.querySelectorAll('input[type="number"]').forEach(input => {
         if (input.id === 'kenp-rate') {
             input.value = '0.0045';
-        } else if (input.id === 'book-price') {
+        } else if (input.id.startsWith('book-price-')) {
             input.value = '4.99';
         } else {
             input.value = '';
@@ -479,7 +488,6 @@ function updateChart() {
 
 function updateCumulativeChart() {
     const kenpRate = parseFloat(document.getElementById('kenp-rate').value) || 0.0045;
-    const bookPrice = parseFloat(document.getElementById('book-price').value) || 4.99;
     
     const labels = [];
     const datasets = [];
@@ -510,6 +518,7 @@ function updateCumulativeChart() {
             const bookData = booksData.get(bookNum);
             if (bookData) {
                 const { sold, pagesRead } = bookData;
+                const bookPrice = parseFloat(document.getElementById(`book-price-${bookNum}`)?.value) || 4.99;
                 const kenpRevenue = pagesRead * kenpRate;
                 const salesRevenue = sold * bookPrice * 0.7;
                 const bookRevenue = kenpRevenue + salesRevenue;
@@ -537,7 +546,6 @@ function updateCumulativeChart() {
 
 function updateIndividualChart() {
     const kenpRate = parseFloat(document.getElementById('kenp-rate').value) || 0.0045;
-    const bookPrice = parseFloat(document.getElementById('book-price').value) || 4.99;
     
     const labels = [];
     const kenpData = [];
@@ -550,6 +558,7 @@ function updateIndividualChart() {
         const bookData = booksData.get(bookNum);
         if (bookData) {
             const { sold, pagesRead } = bookData;
+            const bookPrice = parseFloat(document.getElementById(`book-price-${bookNum}`)?.value) || 4.99;
             const kenpRevenue = pagesRead * kenpRate;
             const salesRevenue = sold * bookPrice * 0.7;
             
@@ -592,7 +601,6 @@ function saveToStorage() {
         bookCount: bookCount,
         books: {},
         kenpRate: document.getElementById('kenp-rate').value,
-        bookPrice: document.getElementById('book-price').value,
         currentChartType: currentChartType
     };
     
@@ -601,11 +609,13 @@ function saveToStorage() {
         const sold = document.getElementById(`sold-${i}`)?.value || '';
         const pagesRead = document.getElementById(`pages-read-${i}`)?.value || '';
         const totalPages = document.getElementById(`total-pages-${i}`)?.value || '';
+        const bookPrice = document.getElementById(`book-price-${i}`)?.value || '4.99';
         
         data.books[i] = {
             sold: sold,
             pagesRead: pagesRead,
-            totalPages: totalPages
+            totalPages: totalPages,
+            bookPrice: bookPrice
         };
     }
     
@@ -631,7 +641,6 @@ function loadFromStorage() {
         
         // Restore global settings
         document.getElementById('kenp-rate').value = data.kenpRate || '0.0045';
-        document.getElementById('book-price').value = data.bookPrice || '4.99';
         currentChartType = data.currentChartType || 'cumulative';
         
         // Update chart toggle buttons
@@ -664,10 +673,12 @@ function loadFromStorage() {
                 const soldInput = document.getElementById(`sold-${i}`);
                 const pagesReadInput = document.getElementById(`pages-read-${i}`);
                 const totalPagesInput = document.getElementById(`total-pages-${i}`);
+                const bookPriceInput = document.getElementById(`book-price-${i}`);
                 
                 if (soldInput) soldInput.value = bookData.sold;
                 if (pagesReadInput) pagesReadInput.value = bookData.pagesRead;
                 if (totalPagesInput) totalPagesInput.value = bookData.totalPages;
+                if (bookPriceInput) bookPriceInput.value = bookData.bookPrice || '4.99';
                 
                 initializeBookData(i);
             }
@@ -733,6 +744,19 @@ function addNewBookFromStorage() {
                         Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
                     </div>
                 </div>
+                <div class="input-field">
+                    <label for="book-price-${bookCount}">
+                        Book Price
+                        <button class="info-btn" onclick="toggleInfo('price-info-${bookCount}')">?</button>
+                    </label>
+                    <div class="input-wrapper">
+                        <span class="currency">$</span>
+                        <input type="number" id="book-price-${bookCount}" placeholder="4.99" min="0" step="0.01" value="4.99">
+                    </div>
+                    <div class="info-text" id="price-info-${bookCount}">
+                        The list price of this book. You earn 70% royalty on sales between $2.99-$9.99, and 35% outside this range. This calculator assumes 70% royalty rate.
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -773,7 +797,6 @@ function exportData() {
         bookCount: bookCount,
         books: {},
         kenpRate: document.getElementById('kenp-rate').value,
-        bookPrice: document.getElementById('book-price').value,
         currentChartType: currentChartType,
         exportDate: new Date().toISOString(),
         version: '1.0'
@@ -784,11 +807,13 @@ function exportData() {
         const sold = document.getElementById(`sold-${i}`)?.value || '';
         const pagesRead = document.getElementById(`pages-read-${i}`)?.value || '';
         const totalPages = document.getElementById(`total-pages-${i}`)?.value || '';
+        const bookPrice = document.getElementById(`book-price-${i}`)?.value || '4.99';
         
         data.books[i] = {
             sold: sold,
             pagesRead: pagesRead,
-            totalPages: totalPages
+            totalPages: totalPages,
+            bookPrice: bookPrice
         };
     }
     
@@ -845,7 +870,6 @@ function importData(event) {
             
             // Restore global settings
             document.getElementById('kenp-rate').value = data.kenpRate || '0.0045';
-            document.getElementById('book-price').value = data.bookPrice || '4.99';
             currentChartType = data.currentChartType || 'cumulative';
             
             // Update chart toggle buttons
@@ -865,10 +889,12 @@ function importData(event) {
                     const soldInput = document.getElementById(`sold-${i}`);
                     const pagesReadInput = document.getElementById(`pages-read-${i}`);
                     const totalPagesInput = document.getElementById(`total-pages-${i}`);
+                    const bookPriceInput = document.getElementById(`book-price-${i}`);
                     
                     if (soldInput) soldInput.value = bookData.sold;
                     if (pagesReadInput) pagesReadInput.value = bookData.pagesRead;
                     if (totalPagesInput) totalPagesInput.value = bookData.totalPages;
+                    if (bookPriceInput) bookPriceInput.value = bookData.bookPrice || '4.99';
                 }
             }
             
