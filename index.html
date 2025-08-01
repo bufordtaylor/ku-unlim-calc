@@ -3,11 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KU Revenue Calculator</title>
+    
+    <!-- Primary Meta Tags -->
+    <title>KU Revenue Calculator - Track Your Kindle Unlimited Performance</title>
+    <meta name="title" content="KU Revenue Calculator - Track Your Kindle Unlimited Performance">
+    <meta name="description" content="Calculate your Kindle Unlimited revenue, read-through rates, and break-even ad costs. Free tool for indie authors to optimize their book series performance and maximize KU earnings.">
+    <meta name="keywords" content="kindle unlimited, KU calculator, KENP calculator, indie author tools, book revenue calculator, read-through rate, kindle publishing, KDP tools">
+    <meta name="author" content="Buford">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ku-calculator.pages.dev/">
+    <meta property="og:title" content="KU Revenue Calculator - Track Your Kindle Unlimited Performance">
+    <meta property="og:description" content="Calculate your Kindle Unlimited revenue, read-through rates, and break-even ad costs. Free tool for indie authors to optimize their book series performance and maximize KU earnings.">
+    <meta property="og:image" content="https://ku-calculator.pages.dev/preview.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="KU Revenue Calculator - Professional dashboard showing book series revenue analytics">
+    <meta property="og:site_name" content="KU Revenue Calculator">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ku-calculator.pages.dev/">
+    <meta property="twitter:title" content="KU Revenue Calculator - Track Your Kindle Unlimited Performance">
+    <meta property="twitter:description" content="Calculate your Kindle Unlimited revenue, read-through rates, and break-even ad costs. Free tool for indie authors to optimize their book series performance.">
+    <meta property="twitter:image" content="https://ku-calculator.pages.dev/preview.png">
+    <meta property="twitter:image:alt" content="KU Revenue Calculator - Professional dashboard showing book series revenue analytics">
+    <meta property="twitter:creator" content="@_buf">
+    <meta property="twitter:site" content="@_buf">
+    
+    <!-- Discord -->
+    <meta name="theme-color" content="#6366f1">
+    
+    <!-- Additional SEO -->
+    <link rel="canonical" href="https://ku-calculator.pages.dev/">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="7 days">
+    <meta name="distribution" content="web">
+    <meta name="rating" content="general">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "KU Revenue Calculator",
+        "description": "Calculate your Kindle Unlimited revenue, read-through rates, and break-even ad costs. Free tool for indie authors to optimize their book series performance and maximize KU earnings.",
+        "url": "https://ku-calculator.pages.dev/",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "author": {
+            "@type": "Person",
+            "name": "Buford",
+            "url": "https://x.com/_buf"
+        },
+        "publisher": {
+            "@type": "Person",
+            "name": "Buford"
+        },
+        "keywords": "kindle unlimited, KU calculator, KENP calculator, indie author tools, book revenue calculator",
+        "audience": {
+            "@type": "Audience",
+            "audienceType": "Authors, Publishers, Indie Authors"
+        }
+    }
+    </script>
 </head>
 <body>
     <div class="hero-section">
@@ -74,13 +151,6 @@
             </div>
         </div>
 
-        <div class="graph-section" style="display: none;">
-            <h2>Revenue Breakdown</h2>
-            <div class="graph-container">
-                <canvas id="revenue-chart" width="800" height="400"></canvas>
-            </div>
-        </div>
-
         <div class="books-section">
             <div class="section-header">
                 <h2>Your Book Series</h2>
@@ -89,7 +159,7 @@
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path d="M4 10C4 13.3137 6.68629 16 10 16C13.3137 16 16 13.3137 16 10C16 6.68629 13.3137 4 10 4C7.79086 4 5.88882 5.13727 4.8 6.8M4 4V7H7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
-                        Reset All Data
+                        Reset
                     </button>
                     <button id="add-book" class="btn-add">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -291,6 +361,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="import-file" accept=".json" style="display: none;">
 
     <footer>
         <p>Created by <a href="https://x.com/_buf" target="_blank" rel="noopener">Buford</a>, Author of <a href="https://www.amazon.com/dp/B0FGWXW9L5" target="_blank" rel="noopener">Nouscraft</a></p>

@@ -231,11 +231,41 @@ body {
     box-shadow: var(--shadow);
 }
 
+.graph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
 .graph-section h2 {
     font-size: 1.5rem;
     font-weight: 700;
     color: var(--dark);
-    margin-bottom: 20px;
+    margin: 0;
+}
+
+.chart-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.chart-toggle {
+    padding: 8px 16px;
+    border: 2px solid var(--primary);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.chart-toggle.active,
+.chart-toggle:hover {
+    background: var(--primary);
+    color: var(--white);
 }
 
 .graph-container {
@@ -294,7 +324,29 @@ body {
 
 .button-group {
     display: flex;
-    gap: 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: var(--white);
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #06b6d4;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
 }
 
 .btn-reset {

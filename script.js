@@ -1,16 +1,14 @@
 let bookCount = 3;
 const booksData = new Map();
 let revenueChart = null;
+let currentChartType = 'cumulative';
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeEventListeners();
-    // Initialize data for all 3 books
-    for (let i = 1; i <= 3; i++) {
-        initializeBookData(i);
-    }
+    //loadFromStorage();
     updateRemoveButtons();
     calculateResults();
-    initializeChart();
+    //initializeChart();
     
     // Close info popups when clicking anywhere on the page
     document.addEventListener('click', function(event) {
@@ -29,13 +27,38 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeEventListeners() {
     document.getElementById('add-book').addEventListener('click', addNewBook);
     document.getElementById('reset-data').addEventListener('click', resetAllData);
+    //document.getElementById('export-data').addEventListener('click', exportData);
+    //document.getElementById('import-data').addEventListener('click', () => {
+        //document.getElementById('import-file').click();
+    //});
+    //document.getElementById('import-file').addEventListener('change', importData);
     
     document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', calculateResults);
+        input.addEventListener('input', function() {
+            calculateResults();
+            saveToStorage();
+        });
     });
     
-    document.getElementById('kenp-rate').addEventListener('input', calculateResults);
-    document.getElementById('book-price').addEventListener('input', calculateResults);
+    document.getElementById('kenp-rate').addEventListener('input', function() {
+        calculateResults();
+        saveToStorage();
+    });
+    document.getElementById('book-price').addEventListener('input', function() {
+        calculateResults();
+        saveToStorage();
+    });
+    
+    // Chart toggle buttons
+    document.querySelectorAll('.chart-toggle').forEach(button => {
+        button.addEventListener('click', function() {
+            document.querySelectorAll('.chart-toggle').forEach(btn => btn.classList.remove('active'));
+            this.classList.add('active');
+            currentChartType = this.dataset.chart;
+            updateChart();
+            saveToStorage();
+        });
+    });
 }
 
 function initializeBookData(bookNumber) {
@@ -132,10 +155,14 @@ function addNewBook() {
     }, 10);
     
     bookCard.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', calculateResults);
+        input.addEventListener('input', function() {
+            calculateResults();
+            saveToStorage();
+        });
     });
     
     updateChart();
+    saveToStorage();
 }
 
 function removeBook(bookNumber) {
@@ -155,6 +182,7 @@ function removeBook(bookNumber) {
         updateRemoveButtons();
         calculateResults();
         updateChart();
+        saveToStorage();
     }, 300);
 }
 
@@ -335,6 +363,9 @@ function resetAllData() {
     // Recalculate results
     calculateResults();
     
+    // Clear storage
+    localStorage.removeItem('kuCalculatorData');
+    
     // Visual feedback
     const resetBtn = document.getElementById('reset-data');
     resetBtn.style.transform = 'scale(0.95)';
@@ -374,14 +405,28 @@ function initializeChart() {
             plugins: {
                 title: {
                     display: true,
-                    text: 'Cumulative Revenue by Book',
+                    text: 'Cumulative Revenue Breakdown',
                     font: {
                         size: 16,
                         weight: 'bold'
-                    }
+                    },
+                    color: '#1e293b'
                 },
                 legend: {
                     position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + formatNumber(context.parsed.y);
+                        }
+                    }
                 }
             },
             scales: {
@@ -391,6 +436,14 @@ function initializeChart() {
                         callback: function(value) {
                             return '$' + formatNumber(value);
                         }
+                    },
+                    grid: {
+                        color: '#f1f5f9'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: '#f1f5f9'
                     }
                 }
             },
@@ -402,6 +455,11 @@ function initializeChart() {
                     radius: 6,
                     hoverRadius: 8
                 }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
             }
         }
     });
@@ -412,20 +470,22 @@ function initializeChart() {
 function updateChart() {
     if (!revenueChart) return;
     
+    if (currentChartType === 'cumulative') {
+        updateCumulativeChart();
+    } else {
+        updateIndividualChart();
+    }
+}
+
+function updateCumulativeChart() {
     const kenpRate = parseFloat(document.getElementById('kenp-rate').value) || 0.0045;
     const bookPrice = parseFloat(document.getElementById('book-price').value) || 4.99;
     
     const labels = [];
     const datasets = [];
     const colors = [
-        '#6366f1', // Primary
-        '#22d3ee', // Secondary  
-        '#10b981', // Success
-        '#f59e0b', // Warning
-        '#ef4444', // Danger
-        '#8b5cf6', // Purple
-        '#06b6d4', // Cyan
-        '#84cc16'  // Lime
+        '#6366f1', '#22d3ee', '#10b981', '#f59e0b', 
+        '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16'
     ];
     
     // Create datasets for each book
@@ -435,13 +495,14 @@ function updateChart() {
             data: [],
             borderColor: colors[(bookNum - 1) % colors.length],
             backgroundColor: colors[(bookNum - 1) % colors.length] + '20',
-            fill: false
+            fill: false,
+            tension: 0.3
         });
     }
     
-    // Generate data points for each book combination
+    // Generate cumulative data points
     for (let dataPoint = 1; dataPoint <= bookCount; dataPoint++) {
-        labels.push(`Book ${dataPoint}`);
+        labels.push(`Through Book ${dataPoint}`);
         
         let cumulativeRevenue = 0;
         
@@ -466,7 +527,376 @@ function updateChart() {
         }
     }
     
+    // Ensure chart type is line for cumulative view
+    revenueChart.config.type = 'line';
     revenueChart.data.labels = labels;
     revenueChart.data.datasets = datasets;
+    revenueChart.options.plugins.title.text = 'Cumulative Revenue Breakdown';
     revenueChart.update();
+}
+
+function updateIndividualChart() {
+    const kenpRate = parseFloat(document.getElementById('kenp-rate').value) || 0.0045;
+    const bookPrice = parseFloat(document.getElementById('book-price').value) || 4.99;
+    
+    const labels = [];
+    const kenpData = [];
+    const salesData = [];
+    
+    // Collect individual book data
+    for (let bookNum = 1; bookNum <= bookCount; bookNum++) {
+        labels.push(`Book ${bookNum}`);
+        
+        const bookData = booksData.get(bookNum);
+        if (bookData) {
+            const { sold, pagesRead } = bookData;
+            const kenpRevenue = pagesRead * kenpRate;
+            const salesRevenue = sold * bookPrice * 0.7;
+            
+            kenpData.push(kenpRevenue);
+            salesData.push(salesRevenue);
+        } else {
+            kenpData.push(0);
+            salesData.push(0);
+        }
+    }
+    
+    const datasets = [
+        {
+            label: 'KENP Revenue',
+            data: kenpData,
+            backgroundColor: '#6366f1aa',
+            borderColor: '#6366f1',
+            borderWidth: 2
+        },
+        {
+            label: 'Sales Revenue',
+            data: salesData,
+            backgroundColor: '#22d3eeaa',
+            borderColor: '#22d3ee',
+            borderWidth: 2
+        }
+    ];
+    
+    // Change chart type to bar for individual comparison
+    revenueChart.config.type = 'bar';
+    revenueChart.data.labels = labels;
+    revenueChart.data.datasets = datasets;
+    revenueChart.options.plugins.title.text = 'Individual Book Revenue Comparison';
+    revenueChart.update();
+}
+
+// Local Storage Functions
+function saveToStorage() {
+    const data = {
+        bookCount: bookCount,
+        books: {},
+        kenpRate: document.getElementById('kenp-rate').value,
+        bookPrice: document.getElementById('book-price').value,
+        currentChartType: currentChartType
+    };
+    
+    // Save all book data
+    for (let i = 1; i <= bookCount; i++) {
+        const sold = document.getElementById(`sold-${i}`)?.value || '';
+        const pagesRead = document.getElementById(`pages-read-${i}`)?.value || '';
+        const totalPages = document.getElementById(`total-pages-${i}`)?.value || '';
+        
+        data.books[i] = {
+            sold: sold,
+            pagesRead: pagesRead,
+            totalPages: totalPages
+        };
+    }
+    
+    try {
+        localStorage.setItem('kuCalculatorData', JSON.stringify(data));
+    } catch (error) {
+        console.warn('Could not save to localStorage:', error);
+    }
+}
+
+function loadFromStorage() {
+    try {
+        const savedData = localStorage.getItem('kuCalculatorData');
+        if (!savedData) {
+            // If no saved data, initialize with default 3 books
+            for (let i = 1; i <= 3; i++) {
+                initializeBookData(i);
+            }
+            return;
+        }
+        
+        const data = JSON.parse(savedData);
+        
+        // Restore global settings
+        document.getElementById('kenp-rate').value = data.kenpRate || '0.0045';
+        document.getElementById('book-price').value = data.bookPrice || '4.99';
+        currentChartType = data.currentChartType || 'cumulative';
+        
+        // Update chart toggle buttons
+        document.querySelectorAll('.chart-toggle').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.chart === currentChartType);
+        });
+        
+        // Restore book count and data
+        const savedBookCount = data.bookCount || 3;
+        
+        // Add books if we need more than the default 3
+        while (bookCount < savedBookCount) {
+            addNewBookFromStorage();
+        }
+        
+        // Remove books if we need fewer than the current count
+        while (bookCount > savedBookCount) {
+            const lastBook = document.querySelector(`[data-book="${bookCount}"]`);
+            if (lastBook) {
+                lastBook.remove();
+                booksData.delete(bookCount);
+                bookCount--;
+            }
+        }
+        
+        // Restore book data
+        for (let i = 1; i <= bookCount; i++) {
+            const bookData = data.books[i];
+            if (bookData) {
+                const soldInput = document.getElementById(`sold-${i}`);
+                const pagesReadInput = document.getElementById(`pages-read-${i}`);
+                const totalPagesInput = document.getElementById(`total-pages-${i}`);
+                
+                if (soldInput) soldInput.value = bookData.sold;
+                if (pagesReadInput) pagesReadInput.value = bookData.pagesRead;
+                if (totalPagesInput) totalPagesInput.value = bookData.totalPages;
+                
+                initializeBookData(i);
+            }
+        }
+        
+    } catch (error) {
+        console.warn('Could not load from localStorage:', error);
+        // Fallback to default initialization
+        for (let i = 1; i <= 3; i++) {
+            initializeBookData(i);
+        }
+    }
+}
+
+function addNewBookFromStorage() {
+    // Similar to addNewBook but without animations for loading
+    bookCount++;
+    const booksContainer = document.getElementById('books-container');
+    
+    const bookCard = document.createElement('div');
+    bookCard.className = 'book-card';
+    bookCard.setAttribute('data-book', bookCount);
+    
+    const readThroughBadge = bookCount > 1 ? `<span class="readthrough-badge" id="readthrough-${bookCount}">0% Read-through</span>` : '';
+    
+    bookCard.innerHTML = `
+        <div class="book-header">
+            <div class="book-number">${bookCount}</div>
+            <h3>Book ${bookCount}</h3>
+        </div>
+        <button class="remove-book" onclick="removeBook(${bookCount})" id="remove-btn-${bookCount}">×</button>
+        ${readThroughBadge}
+        
+        <div class="book-inputs">
+            <div class="input-row">
+                <div class="input-field">
+                    <label for="sold-${bookCount}">
+                        Books Sold
+                        <button class="info-btn" onclick="toggleInfo('sold-info-${bookCount}')">?</button>
+                    </label>
+                    <input type="number" id="sold-${bookCount}" placeholder="0" min="0">
+                    <div class="info-text" id="sold-info-${bookCount}">
+                        Number of copies sold (not borrowed). Find this in your KDP dashboard under "Units Ordered" for the specific title and time period.
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label for="pages-read-${bookCount}">
+                        Pages Read
+                        <button class="info-btn" onclick="toggleInfo('pages-read-info-${bookCount}')">?</button>
+                    </label>
+                    <input type="number" id="pages-read-${bookCount}" placeholder="0" min="0">
+                    <div class="info-text" id="pages-read-info-${bookCount}">
+                        Total KENP (Kindle Edition Normalized Pages) read for this book. Find in KDP dashboard under "KENP Read" column. This is the lifetime total of all pages read by KU subscribers.
+                    </div>
+                </div>
+                <div class="input-field">
+                    <label for="total-pages-${bookCount}">
+                        Total Pages
+                        <button class="info-btn" onclick="toggleInfo('total-pages-info-${bookCount}')">?</button>
+                    </label>
+                    <input type="number" id="total-pages-${bookCount}" placeholder="0" min="1">
+                    <div class="info-text" id="total-pages-info-${bookCount}">
+                        Your book's KENPC (Kindle Edition Normalized Page Count). Find in KDP dashboard: Bookshelf → 3-dot menu → KDP Select Info → scroll to "Earn royalties from..." section.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="book-metrics">
+            <div class="metric-item">
+                <span class="metric-label">Estimated Readers</span>
+                <span class="metric-value" id="readers-${bookCount}">0</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">KENP Revenue</span>
+                <span class="metric-value" id="kenp-revenue-${bookCount}">$0.00</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Sales Revenue</span>
+                <span class="metric-value" id="sales-revenue-${bookCount}">$0.00</span>
+            </div>
+            <div class="metric-item highlight">
+                <span class="metric-label">Total Revenue</span>
+                <span class="metric-value" id="book-revenue-${bookCount}">$0.00</span>
+            </div>
+        </div>
+    `;
+    
+    booksContainer.appendChild(bookCard);
+    initializeBookData(bookCount);
+    
+    bookCard.querySelectorAll('input').forEach(input => {
+        input.addEventListener('input', function() {
+            calculateResults();
+            saveToStorage();
+        });
+    });
+}
+
+// Export/Import Functions
+function exportData() {
+    const data = {
+        bookCount: bookCount,
+        books: {},
+        kenpRate: document.getElementById('kenp-rate').value,
+        bookPrice: document.getElementById('book-price').value,
+        currentChartType: currentChartType,
+        exportDate: new Date().toISOString(),
+        version: '1.0'
+    };
+    
+    // Save all book data
+    for (let i = 1; i <= bookCount; i++) {
+        const sold = document.getElementById(`sold-${i}`)?.value || '';
+        const pagesRead = document.getElementById(`pages-read-${i}`)?.value || '';
+        const totalPages = document.getElementById(`total-pages-${i}`)?.value || '';
+        
+        data.books[i] = {
+            sold: sold,
+            pagesRead: pagesRead,
+            totalPages: totalPages
+        };
+    }
+    
+    // Create and download file
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ku-calculator-data-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    // Visual feedback
+    const exportBtn = document.getElementById('export-data');
+    const originalText = exportBtn.innerHTML;
+    exportBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Exported!
+    `;
+    setTimeout(() => {
+        exportBtn.innerHTML = originalText;
+    }, 2000);
+}
+
+function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            
+            // Validate data structure
+            if (!data.bookCount || !data.books) {
+                throw new Error('Invalid file format');
+            }
+            
+            // Clear existing data
+            while (bookCount > 1) {
+                const lastBook = document.querySelector(`[data-book="${bookCount}"]`);
+                if (lastBook) {
+                    lastBook.remove();
+                    booksData.delete(bookCount);
+                    bookCount--;
+                }
+            }
+            
+            // Restore global settings
+            document.getElementById('kenp-rate').value = data.kenpRate || '0.0045';
+            document.getElementById('book-price').value = data.bookPrice || '4.99';
+            currentChartType = data.currentChartType || 'cumulative';
+            
+            // Update chart toggle buttons
+            document.querySelectorAll('.chart-toggle').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.chart === currentChartType);
+            });
+            
+            // Add books as needed
+            while (bookCount < data.bookCount) {
+                addNewBookFromStorage();
+            }
+            
+            // Restore book data
+            for (let i = 1; i <= data.bookCount; i++) {
+                const bookData = data.books[i];
+                if (bookData) {
+                    const soldInput = document.getElementById(`sold-${i}`);
+                    const pagesReadInput = document.getElementById(`pages-read-${i}`);
+                    const totalPagesInput = document.getElementById(`total-pages-${i}`);
+                    
+                    if (soldInput) soldInput.value = bookData.sold;
+                    if (pagesReadInput) pagesReadInput.value = bookData.pagesRead;
+                    if (totalPagesInput) totalPagesInput.value = bookData.totalPages;
+                }
+            }
+            
+            // Update everything
+            updateRemoveButtons();
+            calculateResults();
+            updateChart();
+            saveToStorage();
+            
+            // Visual feedback
+            const importBtn = document.getElementById('import-data');
+            const originalText = importBtn.innerHTML;
+            importBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Imported!
+            `;
+            setTimeout(() => {
+                importBtn.innerHTML = originalText;
+            }, 2000);
+            
+        } catch (error) {
+            alert('Error importing file: ' + error.message);
+        }
+    };
+    
+    reader.readAsText(file);
+    // Reset file input
+    event.target.value = '';
 }
